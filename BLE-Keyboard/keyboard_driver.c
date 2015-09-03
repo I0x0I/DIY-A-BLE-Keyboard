@@ -48,7 +48,7 @@ static void remap_fn_keys(uint8_t *keys, uint8_t number_of_keys);
 bool keyboard_init(void)
 {
 	input_scan_vector = 0;
-    if (row_pin_array == 0 || column_pin_array == 0){
+	if (row_pin_array == 0 || column_pin_array == 0){
 		return false;	//return if pins have not been define
     }else{
 		for (uint_fast8_t i = KEYBOARD_NUM_OF_COLUMNS; i--;){
