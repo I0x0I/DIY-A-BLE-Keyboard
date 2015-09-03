@@ -34,6 +34,7 @@ keys are holded, know more about the HID keyboard packet format in
 [Device Class Definition for Human Interface Devices (HID)](http://www.usb.org/developers/hidpage/HID1_11.pdf)
  and  [HID Usage Table](http://www.usb.org/developers/hidpage/Hut1_12v2.pdf). Codes on 
  the battery service has been removed and the whole frame work has been simplified.
- ##Future work
+ 
+##Future work
  * Add support to the sleep mode
  * Add support to touchpad
