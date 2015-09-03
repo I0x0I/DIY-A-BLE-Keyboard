@@ -8,7 +8,7 @@ This is a simple open source BLE keyboard firmware for the nRF51 bluetooth chip.
 and test the chip.
 * Download the [nRF51 SDK](https://developer.nordicsemi.com/) and 
 the [S110 SoftDevice](http://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF51822)
-. In this case the nRF51 SDK v9.0 and S110 v8 are used.
+. In this case the nRF51 SDK v9.0 and a 51822 module with S110 v8 are used.
 * Find the *ble_app_hids_keyboard* floder in the SDK, put the *.c* files in this project 
 in the root directory and the *.h* files in the *config* floder 
 * If you want to use the nRF51 chip as both a keyboard controller and a BLE controller, 
