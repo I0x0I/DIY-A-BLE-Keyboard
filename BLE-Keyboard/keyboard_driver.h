@@ -21,6 +21,8 @@
 #define KEY_PACKET_SIZE (KEY_PACKET_KEY_INDEX+KEY_PACKET_MAX_KEYS) //!< Total size of the key packet in bytes
 #define KEY_PACKET_NO_KEY (0) //!< Value to be stored to key index to indicate no key is pressed
 
+void sleep_mode_prepare(void);
+
 bool keyboard_init(void);
 
 /**

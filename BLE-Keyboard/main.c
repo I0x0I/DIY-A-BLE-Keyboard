@@ -1,9 +1,3 @@
-/* Copyright (c) 2015 https://github.com/I0x0I
- *
- * The nordic license apply to the original code in this file.
- * The code that have been modified by I0x0I is under GPLv2 license.
- * 
- */
 /* Copyright (c) 2012 Nordic Semiconductor. All Rights Reserved.
  *
  * The information contained herein is property of Nordic Semiconductor ASA.
@@ -188,7 +182,12 @@ static dm_application_instance_t         m_app_handle;                          
 static dm_handle_t                       m_bonded_peer_handle;                          /**< Device reference handle to the current bonded central. */
 static bool                              m_caps_on = false;                             /**< Variable to indicate if Caps Lock is turned on. */
 
+bool sleep = false;
+
 static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_HUMAN_INTERFACE_DEVICE_SERVICE, BLE_UUID_TYPE_BLE}};
+
+static void sleep_mode_enter(void);
+static void clear_bond(void);
 
 static void on_hids_evt(ble_hids_t * p_hids, ble_hids_evt_t * p_evt);
 
@@ -461,7 +460,7 @@ static void conn_params_init(void)
 static void timers_start(void)
 {
     uint32_t err_code;
-	err_code = app_timer_start(m_keyboard_timer_id, KEYBOARD_SCAN_INTERVAL, NULL);
+		err_code = app_timer_start(m_keyboard_timer_id, KEYBOARD_SCAN_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -508,10 +507,14 @@ static void keyboard_scan_timeout_handler(void * p_context)
     uint8_t        key_packet_size;
     if (keyboard_new_packet(&key_packet, &key_packet_size))
     {
-		if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
-		{
-			keys_send(key_packet_size,(uint8_t *)&key_packet[0]);
-		}
+			if(key_packet[2] == 0xFA){
+				sleep_mode_enter();
+			}else{
+				if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
+				{
+					keys_send(key_packet_size,(uint8_t *)&key_packet[0]);
+				}
+			}	
 	}
 }
 
@@ -545,14 +548,14 @@ static void on_hid_rep_char_write(ble_hids_evt_t *p_evt)
                 // Caps Lock is turned On.
                 APP_ERROR_CHECK(err_code);
                 m_caps_on = true;
-				nrf_gpio_pin_set(16);
+								nrf_gpio_pin_set(16);
             }
             else if (m_caps_on && ((report_val & OUTPUT_REPORT_BIT_MASK_CAPS_LOCK) == 0))
             {
                 // Caps Lock is turned Off .
                 APP_ERROR_CHECK(err_code);
                 m_caps_on = false;
-				nrf_gpio_pin_clear(16);
+								nrf_gpio_pin_clear(16);
             }
             else
             {
@@ -562,26 +565,16 @@ static void on_hid_rep_char_write(ble_hids_evt_t *p_evt)
     }
 }
 
-
 /**@brief Function for putting the chip into sleep mode.
  *
  * @note This function will not return.
  */
 static void sleep_mode_enter(void)
 {
-    uint32_t err_code; //! = bsp_indication_set(BSP_INDICATE_IDLE);
-    //!APP_ERROR_CHECK(err_code);
-
-    // Prepare wakeup buttons.
-    //!err_code = bsp_btn_ble_sleep_mode_prepare();
-    //!APP_ERROR_CHECK(err_code);
-
-    // Go to system-off mode (this function will not return; wakeup will cause a reset).
-    err_code = sd_power_system_off();
-    APP_ERROR_CHECK(err_code);
+		app_timer_stop_all();
+		sleep_mode_prepare();
+		sleep = true;
 }
-
-
 /**@brief Function for handling HID events.
  *
  * @details This function will be called for all HID events which are passed to the application.
@@ -767,29 +760,16 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            //!err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
-            //!APP_ERROR_CHECK(err_code);
-
             m_conn_handle      = p_ble_evt->evt.gap_evt.conn_handle;
             break;
-
         case BLE_GAP_EVT_DISCONNECTED:
-
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-
-            // Reset m_caps_on variable. Upon reconnect, the HID host will re-send the Output 
-            // report containing the Caps lock state.
             m_caps_on = false;
-            // disabling alert 3. signal - used for capslock ON
-            //!err_code = bsp_indication_set(BSP_INDICATE_ALERT_OFF);
-            //!APP_ERROR_CHECK(err_code);
             break;
-
         case BLE_EVT_USER_MEM_REQUEST:
             err_code = sd_ble_user_mem_reply(m_conn_handle, NULL);
             APP_ERROR_CHECK(err_code);
             break;
-
         case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
             if(p_ble_evt->evt.gatts_evt.params.authorize_request.type
                != BLE_GATTS_AUTHORIZE_TYPE_INVALID)
@@ -939,7 +919,7 @@ static void advertising_init(void)
 
     ble_adv_modes_config_t options =
     {
-        BLE_ADV_WHITELIST_ENABLED,
+        BLE_ADV_WHITELIST_DISABLED,
         BLE_ADV_DIRECTED_ENABLED,
         BLE_ADV_DIRECTED_SLOW_DISABLED, 0,0,
         BLE_ADV_FAST_ENABLED, APP_ADV_FAST_INTERVAL, APP_ADV_FAST_TIMEOUT,
@@ -1009,7 +989,6 @@ static void device_manager_init(bool erase_bonds)
     err_code = dm_register(&m_app_handle, &register_param);
     APP_ERROR_CHECK(err_code);
 }
-
 /**@brief Function for initializing buttons and leds.
  *
  * @param[out] p_erase_bonds  Will be true if the clear bonding button was pressed to wake the application up.
@@ -1035,13 +1014,12 @@ static void power_manage(void)
  */
 int main(void)
 {
-    bool erase_bonds = false;
     uint32_t err_code;
-
+		bool erase_bonds = false;
     // Initialize.
     timers_init();
     keyboard_LED_init();
-	keyboard_init();
+		keyboard_init();
     ble_stack_init();
     scheduler_init();
     device_manager_init(erase_bonds);
@@ -1058,6 +1036,9 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
+				if(sleep == true){
+					sd_power_system_off();
+				}
         app_sched_execute();
         power_manage();
     }

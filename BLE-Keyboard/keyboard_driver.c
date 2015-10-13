@@ -1,9 +1,3 @@
-/* Copyright (c) 2015 https://github.com/I0x0I
- *
- * The nordic license apply to the original code in this file.
- * The code that have been modified by I0x0I is under GPLv2 license.
- * 
- */
 /* Copyright (c) 2009 Nordic Semiconductor. All Rights Reserved.
  *
  * The information contained herein is property of Nordic Semiconductor ASA.
@@ -45,10 +39,19 @@ static void keypacket_addkey(uint8_t key);
 static void keypacket_create(uint8_t *key_packet, uint8_t key_packet_size);
 static void remap_fn_keys(uint8_t *keys, uint8_t number_of_keys);
 
+void sleep_mode_prepare(void)
+{
+		for (uint_fast8_t i = KEYBOARD_NUM_OF_COLUMNS; i--;){
+			nrf_gpio_pin_clear((uint32_t)column_pin_array[i]);
+		}
+		nrf_gpio_pin_set((uint32_t)column_pin_array[wakeup_button_column_index]);
+		nrf_gpio_cfg_sense_input(row_pin_array[wakeup_button_row_index], NRF_GPIO_PIN_PULLDOWN, NRF_GPIO_PIN_SENSE_HIGH);
+}
+
 bool keyboard_init(void)
 {
-	input_scan_vector = 0;
-	if (row_pin_array == 0 || column_pin_array == 0){
+		input_scan_vector = 0;
+    if (row_pin_array == 0 || column_pin_array == 0){
 		return false;	//return if pins have not been define
     }else{
 		for (uint_fast8_t i = KEYBOARD_NUM_OF_COLUMNS; i--;){
@@ -198,7 +201,7 @@ static void remap_fn_keys(uint8_t *keys, uint8_t number_of_keys){
             case 0x3A:
                 keys[i] = 0x7F; break;	//F1 -> Mute
             case 0x3B:	
-				keys[i] = 0x81; break;	//F2 -> VolumnDown
+								keys[i] = 0x81; break;	//F2 -> VolumnDown
             case 0x3C:          
                 keys[i] = 0x80; break;	//F3 -> VolumnUp
             case 0x3D:         
@@ -211,6 +214,8 @@ static void remap_fn_keys(uint8_t *keys, uint8_t number_of_keys){
                 keys[i] = 0x4A; break; 	//Left -> Home
             case 0x4F:        
                 keys[i] = 0x4D; break;	//Right -> End
+						case 0x2C:        
+                keys[i] = 0xFA; break;	//Space -> Sleep mode
             default: break;
         }
     }
