@@ -1,9 +1,9 @@
-#DIY A BLE Keyboard
+# DIY A BLE Keyboard
 
-##Introduction
+## Introduction
 This is a simple open source BLE keyboard firmware for the nRF51 bluetooth chip.
 
-##How to use
+## How to use
 * Follow the [tutorials](https://devzone.nordicsemi.com/tutorials/) to set up development environment
 and test the chip.
 * Download the [nRF51 SDK](https://developer.nordicsemi.com/) and 
@@ -23,7 +23,7 @@ you would need to write some code for the nRF51 to communicate with the keyboard
 examples can be find in the SDK and more detail information is in
 [here](http://infocenter.nordicsemi.com/index.jsp)
 
-##How does it work
+## How does it work
 These codes originated from the hid_keyboard example and the cherry example, a timer is 
 setted to scan the keyboard every 25ms. If there are key presses, it will create a report 
 packet in HID keyboard format and send it to the host, when all keys are released, a packet
@@ -35,6 +35,6 @@ keys are holded, know more about the HID keyboard packet format in
  and  [HID Usage Table](http://www.usb.org/developers/hidpage/Hut1_12v2.pdf). Codes on 
  the battery service has been removed and the whole frame work has been simplified.
  
-##Future work
+## Future work
  * Add support to the sleep mode
  * Add support to touchpad
