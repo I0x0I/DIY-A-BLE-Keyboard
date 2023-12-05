@@ -16,7 +16,7 @@ you need to connect the keyboard matrix to it. After doing that, set variables o
 keyboard in *keyboard_map.h* and compile the project. After flashing, you should be able
 to find a *Nrodic Keyboard* device and that is your BLE keyboard. The lookup matrix uses 
 HID key code defined in
-[Simplified USB HID keycode Table](http://www.mindrunway.ru/IgorPlHex/USBKeyScan.pdf)
+[USB HID Usage Codes](https://deskthority.net/wiki/Scancode)
 or [USB HID to PS/2 Scan Code Translation Table](http://www.hiemalis.org/~keiji/PC/scancode-translate.pdf)
 * If you only want to use the nRF51 chip as a BLE controller, beside setting the variables, 
 you would need to write some code for the nRF51 to communicate with the keyboard controller,
